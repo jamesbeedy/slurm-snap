@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -eux
+
+
+
+snap_mode=$(snapctl get snap.mode)
+echo ${snap_mode:-none} > $SNAP_DATA/snap_mode
+
+
+munge_key=$(snapctl get munge.key)
+munge_key_file=$SNAP_COMMON/etc/munge/munge.key
+
+if [[ ! -z $munge_key && ! -f $munge_key_file ]]; then
+    echo "munge.key is empty"
+    dd if=/dev/urandom bs=1 count=1024 > $munge_key_file
+else
+    if [[ -f $munge_key_file ]]; then
+        chmod 0777 $munge_key_file
+    fi
+    echo -n "$munge_key" | sha512sum | cut -d' ' -f1 > $munge_key_file
+fi
+
+chmod 0400 $munge_key_file
+snapctl restart slurm.munged
+
+exit 0

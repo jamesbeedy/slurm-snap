@@ -1,0 +1,56 @@
+[inet_http_server]
+port=127.0.0.1:9001
+username=maas
+password=maas
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory=supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisord]
+directory=%(here)s
+logfile=%(here)s/supervisord.log
+pidfile=%(here)s/supervisord.pid
+
+[supervisorctl]
+serverurl=http://localhost:9001
+username=maas
+password=maas
+
+{% if ctxt['mode'] in ['slurmdbd', 'all'] %}
+[program:slurmdbd]
+process_name=slurmdbd
+command=%(ENV_SNAP)s/bin/ld-preload %(ENV_SNAP)s/bin/run-postgres
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=%(ENV_SNAP_COMMON)s/log/slurmdbd.log
+
+[program:mysql]
+process_name=mysql
+command=%(ENV_SNAP)s/bin/ld-preload %(ENV_SNAP)s/bin/run-postgres
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=%(ENV_SNAP_COMMON)s/log/mysql.log
+{% endif %}
+
+
+{% if ctxt['mode'] in ['slurmd', 'all'] %}
+[program:slurmd]
+process_name=slurmd
+command=%(ENV_SNAP)s/bin/run-regiond
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=%(ENV_SNAP_COMMON)s/log/slurmd.log
+{% endif %}
+
+{% if ctxt['mode'] in ['slurmctld', 'all'] %}
+[program:slurmctld]
+process_name=slurmctld
+command=%(ENV_SNAP)s/bin/run-regiond
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=%(ENV_SNAP_COMMON)s/log/slurmctld.log
+{% endif %}

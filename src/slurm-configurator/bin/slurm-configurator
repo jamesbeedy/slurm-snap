@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+import argparse
+import os
+import sys
+
+
+def get_mode_filepath():
+    """Return the path to the 'snap_mode' file."""
+    return os.path.join(os.environ["SNAP_COMMON"], "snap_mode")
+
+
+def get_current_mode():
+    """Gets the current mode of the snap."""
+    filepath = get_mode_filepath()
+    if os.path.exists(filepath):
+        with open(get_mode_filepath(), "r") as fp:
+            return fp.read().strip()
+    else:
+        return "none"
+
+
+def set_current_mode(mode):
+    """Set the current mode of the snap."""
+    with open(get_mode_filepath(), "w") as fp:
+        fp.write(mode.strip())
+
+
+def get_parsed_args(argv):
+    """Create argument parser and return cli args.
+    """
+    parser = argparse.ArgumentParser(
+        description="Create SLURM Supervisord Config"
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--set-snap-mode",
+        type=str,
+        dest="set_snap_mode",
+        required=False,
+        default="all".
+        choices=['all', 'slurmdbd', 'slurmd', 'slurmctld'],
+        help="Set snap mode; slurmctld, slurmd, slurmdbd, all."
+    )
+    group.add_argument(
+        "--get-snap-mode",
+        action="store_true",
+        dest="get_snap_mode",
+        required=False,
+        help="Get snap mode"
+    )
+    return parser.parse_args(argv)
+
+
+def main(argv=sys.argv[1:]):
+
+    snap_mode = str()
+    args = get_parsed_args(argv)
+
+    if args.get_snap_mode:
+        snap_mode = get_current_mode())
+    elif args.set_snap_mode:
+        set_current_mode(args.set_snap_mode)
+        snap_mode = args.set_snap_mode
+
+    print(snap_mode)
+
+if __name__ == "__main__":
+    main()

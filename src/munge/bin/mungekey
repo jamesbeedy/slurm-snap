@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+exec "$SNAP/usr/sbin/mungekey" "--keyfile=$SNAP_COMMON/etc/munge/munge.key" "$@"
