@@ -17,6 +17,13 @@ username=slurm
 password=slurm
 
 {% if ctxt['mode'] in ['slurmdbd', 'all'] %}
+[program:slurmdbd]
+process_name=slurmdbd
+command=%(ENV_SNAP)s/bin/slurmdbd
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=%(ENV_SNAP_COMMON)s/log/slurmdbd.log
 
 [program:mysql]
 process_name=mysql

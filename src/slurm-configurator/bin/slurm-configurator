@@ -3,66 +3,114 @@ import argparse
 import os
 import sys
 
+from pathlib import Path
 
-def get_mode_filepath():
-    """Return the path to the 'snap_mode' file."""
-    return os.path.join(os.environ["SNAP_COMMON"], "snap_mode")
+import yaml
 
-
-def get_current_mode():
-    """Gets the current mode of the snap."""
-    filepath = get_mode_filepath()
-    if os.path.exists(filepath):
-        with open(get_mode_filepath(), "r") as fp:
-            return fp.read().strip()
-    else:
-        return "none"
+from jinja2 import Environment, FileSystemLoader
 
 
-def set_current_mode(mode):
-    """Set the current mode of the snap."""
-    with open(get_mode_filepath(), "w") as fp:
-        fp.write(mode.strip())
+yaml.warnings({'YAMLLoadWarning': False})
 
 
 def get_parsed_args(argv):
     """Create argument parser and return cli args.
     """
     parser = argparse.ArgumentParser(
-        description="Create SLURM Supervisord Config"
+        description="Create SLURM Config"
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
-        "--set-snap-mode",
-        type=str,
-        dest="set_snap_mode",
+    parser.add_argument(
+        "--host-yaml",
+        type=argparse.FileType('r'),
+        dest="host_yaml",
         required=False,
-        default="all".
-        choices=['all', 'slurmdbd', 'slurmd', 'slurmctld'],
-        help="Set snap mode; slurmctld, slurmd, slurmdbd, all."
+        help="Slurm host config as yaml file."
     )
-    group.add_argument(
-        "--get-snap-mode",
-        action="store_true",
-        dest="get_snap_mode",
+    parser.add_argument(
+        "--auth-yaml",
+        type=argparse.FileType('r'),
+        dest="auth_yaml",
         required=False,
-        help="Get snap mode"
+        help="Slurm auth config as yaml file."
+    )
+    parser.add_argument(
+        "--general-yaml",
+        type=argparse.FileType('r'),
+        dest="general_yaml",
+        required=False,
+        help="Slurm general config as yaml file."
+    )
+    parser.add_argument(
+        "--storage-yaml",
+        type=argparse.FileType('r'),
+        dest="storage_yaml",
+        required=False,
+        help="Storage config as a yaml file."
     )
     return parser.parse_args(argv)
 
 
-def main(argv=sys.argv[1:]):
+def render_slurm_conf(ctxt: 'dict'=None):
 
-    snap_mode = str()
+    if not ctxt:
+        ctxt = {}
+
+    templates_path = os.path.join(os.getenv('SNAP'), 'templates')
+    env = Environment(loader=FileSystemLoader(templates_path))
+    return env.get_template('slurm.conf').render(ctxt=ctxt)
+
+
+def main(argv=sys.argv[1:]):
     args = get_parsed_args(argv)
 
-    if args.get_snap_mode:
-        snap_mode = get_current_mode())
-    elif args.set_snap_mode:
-        set_current_mode(args.set_snap_mode)
-        snap_mode = args.set_snap_mode
+    ctxt = {}
+    ctxt['auth_config'] = {}
+    ctxt['host_config'] = {}
+    ctxt['general_config'] = {}
+    ctxt['storage_config'] = {}
 
-    print(snap_mode)
+    slurm_configurator_base = Path(
+        f"{os.environ['SNAP_COMMON']}/etc/slurm-configurator"
+    )
+
+    # Auth YAML
+    if args.auth_yaml:
+        auth_yaml = args.auth_yaml.read()
+    else:
+        auth_yaml = slurm_configurator_base / 'auth.yaml'
+        auth_yaml = auth_yaml.read_text()
+    for k, v in yaml.load(auth_yaml).items():
+        ctxt['auth_config'][k] = v
+
+    # HOST YAML
+    if args.host_yaml:
+        host_yaml = args.host_yaml.read()
+    else:
+        host_yaml = slurm_configurator_base / 'host.yaml'
+        host_yaml = host_yaml.read_text()
+    for k, v in yaml.load(host_yaml).items():
+        ctxt['host_config'][k] = v
+
+    # General YAML
+    if args.general_yaml:
+        general_yaml = args.general_yaml.read()
+    else:
+        general_yaml = slurm_configurator_base / 'general.yaml'
+        general_yaml = general_yaml.read_text()
+    for k, v in yaml.load(general_yaml).items():
+        ctxt['general_config'][k] = v
+
+    # Storage YAML
+    if args.storage_yaml:
+        storage_yaml = args.storage_yaml.read()
+    else:
+        storage_yaml = slurm_configurator_base / 'storage.yaml'
+        storage_yaml = storage_yaml.read_text()
+    for k, v in yaml.load(storage_yaml).items():
+        ctxt['storage_config'][k] = v
+
+    print(render_slurm_conf(ctxt=ctxt))
+
 
 if __name__ == "__main__":
     main()

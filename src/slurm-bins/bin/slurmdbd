@@ -1,0 +1,71 @@
+#!/bin/bash
+
+set -e
+
+. "$SNAP/utilities/mysql-utilities"
+. "$SNAP/utilities/common-utilities"
+
+export LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$SNAP/lib:$SNAP/lib/slurm/
+
+export PATH=$SNAP/bin:$SNAP/usr/bin:/snap/bin:$PATH
+
+export SLURM_CONF=$SNAP_COMMON/etc/slurm/slurmdbd.conf
+
+SLURMDBD_MYSQL_PASSWORD_FILE=$SNAP_DATA/mysql/slurm_password
+HOSTNAME=`hostname -s`
+
+CONFIGURATOR_DIR=$SNAP_COMMON/etc/slurm-configurator
+HOST_YAML=$CONFIGURATOR_DIR/host.yaml
+AUTH_YAML=$CONFIGURATOR_DIR/auth.yaml
+STORAGE_YAML=$CONFIGURATOR_DIR/storage.yaml
+
+# Check for host.yaml
+if [[ ! -f $HOST_YAML ]]; then
+    pprint "Creating Initial host config file"
+    pprint "$HOST_YAML"
+
+    printf "DbdHost: $HOSTNAME\n
+DbdAddr: $HOSTNAME\n" > $HOST_YAML
+fi
+
+# Check for munged-socket
+if [[ ! -S $SNAP_DATA/munge.socket.2 ]]; then
+    pprint "Munge socket not available"
+    printf "AuthType: auth/none\n" > $AUTH_YAML
+else
+    pprint "Munge socket available"
+    printf "AuthType: auth/munge\n
+AuthInfo: \"socket=$SNAP_DATA/munge.socket.2\"\n" > $AUTH_YAML
+fi
+
+# Wait for mysql to become available.
+wait_for_mysql
+pprint "MySQL ready";
+
+# Generate a storage.yaml if one doesn't exist
+if [[ ! -f $STORAGE_YAML ]]; then
+
+    # Ensure the mysql slurm_password file exists
+    while [[ ! -f $SLURMDBD_MYSQL_PASSWORD_FILE ]]
+    do
+        sleep 1
+        pprint "Waiting for SLURM MySQL database and user to become available"
+    done
+
+    pprint "SLURM MySQL database and user available"
+    SLURMDB_PASS=`cat $SLURMDBD_MYSQL_PASSWORD_FILE`
+
+    printf "StorageType: 'accounting_storage/mysql'\n
+StorageHost: 'localhost:/tmp/sockets/mysql.sock'\n
+StorageLoc: 'slurmdbd'\n
+StorageUser: 'slurm'\n
+StoragePass: '$SLURMDB_PASS'\n" > $STORAGE_YAML
+fi
+
+# Run slurm-configurator
+pprint "Running slurm-configurator"
+slurm-configurator > $SLURM_CONF
+
+pprint "Starting SLURMDBD"
+exec "$SNAP/sbin/slurmdbd" "-Dvvvvv" "$@"
