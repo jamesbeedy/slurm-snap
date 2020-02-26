@@ -5,10 +5,9 @@ set -e
 supervisord_dir=$SNAP_DATA/supervisord
 supervisord_conf=$supervisord_dir/supervisord.conf
 
-#snap_mode=$(cat $SNAP_DATA/snap_mode)
+snap_mode=$(cat $SNAP_DATA/snap_mode)
 
-mode="none"
-#${snap_mode:none}
+mode=${snap_mode:none}
 
 $SNAP/bin/supervisord-configurator -m $mode > "$supervisord_conf"
 
