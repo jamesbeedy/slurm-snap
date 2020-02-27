@@ -3,4 +3,4 @@
 set -e
 
 
-exec "$SNAP/usr/bin/remunge" "--socket=$SNAP_DATA/munge.socket.2" "$@"
+exec "$SNAP/usr/local/bin/remunge" "--socket=$SNAP_DATA/munge.socket.2" "$@"

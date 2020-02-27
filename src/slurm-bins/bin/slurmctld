@@ -1,0 +1,68 @@
+#!/bin/bash
+
+set -e
+
+. "$SNAP/utilities/common-utilities"
+
+SLURM_NODE_TYPE=slurmctld
+
+export LD_LIBRARY_PATH=$SNAP/lib:$SNAP/lib/slurm:$SNAP/usr/lib/x86_64-linux-gnu
+
+export PATH=$SNAP/bin:$SNAP/usr/bin:/snap/bin:$PATH
+
+export SLURM_CONF=$SNAP_COMMON/etc/slurm/slurmctld.conf
+
+SLURMCTLD_LOG=$SNAP_COMMON/log/slurmctld.log
+
+HOSTNAME=`hostname -s`
+
+CONFIGURATOR_DIR=$SNAP_COMMON/etc/slurm-configurator
+
+HOST_YAML=$CONFIGURATOR_DIR/slurmdbd_host.yaml
+AUTH_YAML=$CONFIGURATOR_DIR/slurmdbd_auth.yaml
+
+SLURMDBD_INIT=$SNAP_COMMON/slurmdbd-init
+
+slurmdbd_init()
+{
+        # Arguments:
+        #  -f: Force the check, i.e. ignore if it's currently in setup
+        [ -f "$SLURMDBD_INIT" ]
+}
+
+wait_for_slurmdbd_init()
+{
+        # Arguments:
+        #  -f: Force the check, i.e. ignore if it's currently in setup
+        wait_for_command "Waiting for SLURMDBD to initialize" slurmdbd_init "$@"
+}
+
+if [[ ! -f $HOST_YAML ]]; then
+    pprint "Creating Initial host config file"
+    pprint "$HOST_YAML"
+
+    echo "SlurmctldHost: $HOSTNAME" > $HOST_YAML
+fi
+
+
+if [[ ! -S $SNAP_DATA/munge.socket.2 ]]; then
+    pprint "Munge socket not available"
+    printf "AuthType: auth/none\n" > $AUTH_YAML
+else
+    pprint "Munge socket available"
+    printf "AuthType: auth/munge\n
+AuthInfo: \"socket=$SNAP_DATA/munge.socket.2\"\n" > $AUTH_YAML
+fi
+
+wait_for_slurmdbd_init
+
+# Run slurm-configurator
+pprint "Running slurm-configurator"
+slurm-configurator -t $SLURM_NODE_TYPE > $SLURM_CONF
+
+pprint "Starting SLURMCTLD"
+
+exec "$SNAP/sbin/slurmctld" \
+    "-f" "$SLURM_CONF" \
+    "-L" "$SLURMCTLD_LOG" \
+    "-cDvvvvv" "$@"

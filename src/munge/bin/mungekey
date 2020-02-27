@@ -2,4 +2,4 @@
 
 set -e
 
-exec "$SNAP/usr/sbin/mungekey" "--keyfile=$SNAP_COMMON/etc/munge/munge.key" "$@"
+exec "$SNAP/usr/local/sbin/mungekey" "--keyfile=$SNAP_COMMON/etc/munge/munge.key" "$@"

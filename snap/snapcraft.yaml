@@ -6,42 +6,26 @@ description: |
   job scheduling system for large and small Linux clusters.
 
 grade: stable
-confinement: strict
+confinement: classic
 
 base: core18
 
+passthrough:
+    system-usernames:
+      snap_daemon: shared
 
 apps:
   supervisor:
     daemon: simple
     command: bin/run-supervisord
-    plugs:
-        - avahi-observe # network discovery
-        - hardware-observe
-        - kernel-module-observe
-        - mount-observe
-        - network
-        - network-bind
-        - network-observe
-        - network-control
-        - system-observe
 
   supervisorctl:
     command: bin/run-supervisorctl
-    plugs:
-        - avahi-observe # network discovery
-        - network
-        - network-bind
-        - network-observe
-        - network-control
-        - system-observe
 
   munged:
     daemon: simple
     command: bin/munged
-    plugs:
-      - network
-      - network-bind
+
   munge:
     command: bin/munge
   unmunge:
@@ -83,19 +67,12 @@ parts:
       - libbz2-dev
     stage:
       - usr/
-      - var/
-      - etc/
     prime:
       - usr/
-      - etc/
-      - var/
     override-build: |
       snapcraftctl build
       ./bootstrap
-      ./configure --prefix=$SNAPCRAFT_PART_INSTALL/usr \
-          --sysconfdir=$SNAPCRAFT_PART_INSTALL/etc \
-          --localstatedir=$SNAPCRAFT_PART_INSTALL/var \
-          --libdir=$SNAPCRAFT_PART_INSTALL/usr/lib/x86_64-linux-gnu
+      ./configure --prefix=$SNAPCRAFT_PART_INSTALL/usr/local
       make
       make install
 
@@ -207,13 +184,13 @@ parts:
 
   slurm:
     after:
-      - json-c
       - libcurl
       - glib
       - munge
     plugin: dump
     source: https://download.schedmd.com/slurm/slurm-20.02.0.tar.bz2
     build-packages:
+      - libjson-c-dev
       - libhdf5-dev
       - python-dev
       - libreadline-dev
@@ -252,16 +229,15 @@ parts:
       - usr/
     override-build: |
       snapcraftctl build
-      #LD_LIBRARY_PATH=$SNAPCRAFT_STAGE/lib:$SNAPCRAFT_STAGE/opt:$SNAPCRAFT_STAGE \
+      #LD_LIBRARY_PATH=$SNAPCRAFT_STAGE/usr/lib:$SNAPCRAFT_STAGE/usr/lib/x86_64-linux-gnu:$SNAPCRAFT_STAGE/lib:$SNAPCRAFT_STAGE/opt:$SNAPCRAFT_STAGE \
       ./configure --enable-threading \
-          --with-munge=$SNAPCRAFT_STAGE/usr/lib/x86_64-linux-gnu \
-          --with-json=$SNAPCRAFT_STAGE \
-          --with-libcurl=$SNAPCRAFT_STAGE/opt/curl \
+          --with-munge=$SNAPCRAFT_STAGE/usr/local \
+          --with-libcurl=$SNAPCRAFT_STAGE/usr/local \
           --prefix=$SNAPCRAFT_PART_INSTALL \
           --localstatedir=/var/snap/slurm/common/etc/slurm
       make -j9
       make install
-      ldconfig -n /snap/slurm/current/lib/slurm/
+      ldconfig -n /snap/slurm/current/lib/slurm
 
   glib:
     plugin: dump
@@ -288,22 +264,6 @@ parts:
       ninja -C _build
       ninja -C _build install
 
-  json-c:
-    plugin: cmake
-    configflags:
-      - "-DBUILD_SHARED_LIBS=On"
-    source: https://github.com/json-c/json-c.git
-    source-type: git
-    source-depth: 1
-    source-tag: json-c-0.13.1-20180305
-    build-packages:
-      - g++
-      - libtool
-    stage:
-      - include/
-    prime:
-      - -*
-
   libcurl:
     plugin: dump
     source: https://github.com/curl/curl.git
@@ -316,13 +276,13 @@ parts:
       - autoconf
       - make
     stage:
-      - opt/
+      - usr/
     prime:
       - -*
     override-build: |
       snapcraftctl build
       ./buildconf
-      ./configure --with-ssl --prefix=$SNAPCRAFT_PART_INSTALL/opt/curl/
+      ./configure --with-ssl --prefix=$SNAPCRAFT_PART_INSTALL/usr/local
       make -j9
       make install
 

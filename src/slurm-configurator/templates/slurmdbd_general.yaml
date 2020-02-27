@@ -1,3 +1,4 @@
+
 ArchiveEvents: "yes"
 ArchiveJobs: "yes"
 ArchiveResvs: "yes"
@@ -17,9 +18,9 @@ PurgeSuspendAfter: "1month"
 PurgeTXNAfter: "12month"
 PurgeUsageAfter: "24month"
 
-LogFile: "/var/snap/slurmdbd/common/log/slurmdbd.log"
+LogFile: "/var/snap/slurm/common/log/slurmdbd.log"
 PidFile: "/tmp/slurmdbd.pid"
-PluginDir: "/snap/slurmdbd/current/lib/slurm"
+PluginDir: "/snap/slurm/current/lib/slurm"
 
 SlurmUser: "root"
 

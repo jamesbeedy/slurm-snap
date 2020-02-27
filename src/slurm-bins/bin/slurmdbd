@@ -5,6 +5,9 @@ set -e
 . "$SNAP/utilities/mysql-utilities"
 . "$SNAP/utilities/common-utilities"
 
+SLURM_NODE_TYPE=slurmdbd
+
+
 export LD_LIBRARY_PATH
 LD_LIBRARY_PATH=$SNAP/lib:$SNAP/lib/slurm/
 
@@ -16,9 +19,12 @@ SLURMDBD_MYSQL_PASSWORD_FILE=$SNAP_DATA/mysql/slurm_password
 HOSTNAME=`hostname -s`
 
 CONFIGURATOR_DIR=$SNAP_COMMON/etc/slurm-configurator
-HOST_YAML=$CONFIGURATOR_DIR/host.yaml
-AUTH_YAML=$CONFIGURATOR_DIR/auth.yaml
-STORAGE_YAML=$CONFIGURATOR_DIR/storage.yaml
+HOST_YAML=$CONFIGURATOR_DIR/slurmdbd_host.yaml
+AUTH_YAML=$CONFIGURATOR_DIR/slurmdbd_auth.yaml
+STORAGE_YAML=$CONFIGURATOR_DIR/slurmdbd_storage.yaml
+
+SLURMDBD_INIT=$SNAP_COMMON/slurmdbd-init
+
 
 # Check for host.yaml
 if [[ ! -f $HOST_YAML ]]; then
@@ -57,15 +63,17 @@ if [[ ! -f $STORAGE_YAML ]]; then
     SLURMDB_PASS=`cat $SLURMDBD_MYSQL_PASSWORD_FILE`
 
     printf "StorageType: 'accounting_storage/mysql'\n
-StorageHost: 'localhost:/tmp/sockets/mysql.sock'\n
-StorageLoc: 'slurmdbd'\n
+StorageHost: 'localhost'\n
+StorageLoc: 'slurmdb'\n
 StorageUser: 'slurm'\n
 StoragePass: '$SLURMDB_PASS'\n" > $STORAGE_YAML
 fi
 
 # Run slurm-configurator
 pprint "Running slurm-configurator"
-slurm-configurator > $SLURM_CONF
+slurm-configurator -t $SLURM_NODE_TYPE > $SLURM_CONF
+
+touch $SLURMDBD_INIT
 
 pprint "Starting SLURMDBD"
 exec "$SNAP/sbin/slurmdbd" "-Dvvvvv" "$@"

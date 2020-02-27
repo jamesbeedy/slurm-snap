@@ -3,7 +3,7 @@
 set -e
 
 
-exec "$SNAP/usr/sbin/munged" \
+exec "$SNAP/usr/local/sbin/munged" \
      "--key-file=$SNAP_COMMON/etc/munge/munge.key" \
      "--socket=$SNAP_DATA/munge.socket.2" \
      "--pid-file=$SNAP_COMMON/var/run/munge/munged.pid" \
