@@ -36,7 +36,7 @@ def render_slurm_conf(ctxt: 'dict'=None):
     if not ctxt:
         ctxt = {}
 
-    templates_path = os.path.join(os.getenv('SNAP'), 'etc', 'slurm-configurator')
+    templates_path = os.path.join(os.getenv('SNAP_COMMON'), 'etc', 'slurm-configurator')
     env = Environment(loader=FileSystemLoader(templates_path))
     return env.get_template('slurm.conf.tmpl').render(ctxt=ctxt)
 

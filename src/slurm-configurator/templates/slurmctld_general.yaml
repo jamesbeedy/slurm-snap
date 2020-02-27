@@ -10,15 +10,15 @@ CheckpointType: "checkpoint/none"
 
 DefaultStorageType: "none"
 
-MailProg: "/snap/slurmctld/current/usr/bin/mail.mailutils"
+MailProg: "/snap/slurm/current/usr/bin/mail.mailutils"
 
 SlurmctldPidFile: "/tmp/slurmctld.pid"
 
-SlurmctldLogFile: "/var/snap/slurmctld/common/log/slurmctld.log"
+SlurmctldLogFile: "/var/snap/slurm/common/log/slurmctld.log"
 
-StateSaveLocation: "/var/snap/slurmctld/common/var/spool/slurm/ctld"
+StateSaveLocation: "/var/snap/slurm/common/var/spool/slurm/ctld"
 
-PluginDir: "/snap/slurmctld/current/lib/slurm"
+PluginDir: "/snap/slurm/current/lib/slurm"
 
 SchedulerType: "sched/backfill"
 

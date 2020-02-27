@@ -18,8 +18,8 @@ HOSTNAME=`hostname -s`
 
 CONFIGURATOR_DIR=$SNAP_COMMON/etc/slurm-configurator
 
-HOST_YAML=$CONFIGURATOR_DIR/slurmdbd_host.yaml
-AUTH_YAML=$CONFIGURATOR_DIR/slurmdbd_auth.yaml
+HOST_YAML=$CONFIGURATOR_DIR/slurmctld_host.yaml
+AUTH_YAML=$CONFIGURATOR_DIR/slurmctld_auth.yaml
 
 SLURMDBD_INIT=$SNAP_COMMON/slurmdbd-init
 

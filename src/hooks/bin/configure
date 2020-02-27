@@ -2,8 +2,10 @@
 
 set -eux
 
+################################### Copy Configs ########################################
+cp $SNAP/templates/* $SNAP_COMMON/etc/slurm-configurator/
 
-
+################################### GET SNAP MODE ########################################
 snap_mode=$(snapctl get snap.mode)
 echo ${snap_mode:-none} > $SNAP_DATA/snap_mode
 

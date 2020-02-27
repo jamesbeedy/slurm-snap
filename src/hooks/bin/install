@@ -8,8 +8,6 @@ mkdir -p "$SNAP_COMMON/proxy/"{cache,spool}
 mkdir -p "$SNAP_DATA/syslog"
 mkdir -p "$SNAP_DATA/supervisord"
 
-################################### Copy Configs ########################################
-#cp "$SNAP/templates/*" "$SNAP_COMMON/etc/slurm-configurator/"
 
 ################################### Create SLURM Dirs ###################################
 mkdir -p "$SNAP_COMMON/log/"{proxy,http}
