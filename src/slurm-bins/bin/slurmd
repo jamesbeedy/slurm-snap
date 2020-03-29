@@ -37,12 +37,19 @@ else
 AuthInfo: \"socket=$SNAP_DATA/munge.socket.2\"\n" > $AUTH_YAML
 fi
 
+
 # Run slurm-configurator
 pprint "Running slurm-configurator"
 slurm-configurator -t $SLURM_NODE_TYPE > $SLURM_CONF
 
-pprint "Starting SLURMD"
+if [ -f rsyslog config exists
 
+
+
+
+
+
+pprint "Starting SLURMD"
 exec "$SNAP/sbin/slurmd" \
     "-f" "$SLURM_CONF" \
     "-L" "$SLURMCTLD_LOG" \

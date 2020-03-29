@@ -33,6 +33,9 @@ chmod -R 755 $SNAP_COMMON/etc/slurm
 mkdir -p $SNAP_COMMON/etc/slurm-configurator
 chmod -R 755 $SNAP_COMMON/etc/slurm-configurator
 
+################################### Copy Configs ########################################
+cp $SNAP/templates/* $SNAP_COMMON/etc/slurm-configurator/
+
 
 ################################### Create Munge Dirs ###################################
 # This directory contains the daemon's secret key. The recommended permissions for it are 0700.

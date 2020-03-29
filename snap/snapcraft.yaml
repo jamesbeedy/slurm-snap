@@ -15,17 +15,27 @@ passthrough:
       snap_daemon: shared
 
 apps:
-  supervisor:
+#  supervisord:
+#    daemon: simple
+#    command: bin/run-supervisord
+#  supervisorctl:
+#    command: bin/run-supervisorctl
+  mysql:
+    command: bin/start_mysql
+    stop-command: support-files/mysql.server stop
     daemon: simple
-    command: bin/run-supervisord
-
-  supervisorctl:
-    command: bin/run-supervisorctl
+    restart-condition: always
+    plugs: [network, network-bind]
+  mysql-client:
+    command: bin/run-mysql
+    plugs: [network, network-bind]
+  mysqldump:
+    command: bin/mysqldump --defaults-file=$SNAP_DATA/mysql/root.ini --lock-tables slurmdb
+    plugs: [network, network-bind]
 
   munged:
     daemon: simple
     command: bin/munged
-
   munge:
     command: bin/munge
   unmunge:
@@ -35,21 +45,73 @@ apps:
   mungekey:
     command: bin/mungekey
 
+  slurmdbd:
+    command: bin/slurmdbd
+    daemon: simple
+    restart-condition: always
+    plugs: [network, network-bind]
+
+  slurmctld:
+    command: bin/slurmctld
+    daemon: simple
+    restart-condition: always
+    plugs: [network, network-bind]
+
+  slurmd:
+    command: bin/slurmd
+    daemon: simple
+    restart-condition: always
+    plugs: [network, network-bind]
+
+  sacct:
+    command: bin/slurm-cmd sacct
+  sacctmgr:
+    command: bin/slurm-cmd sacctmgr
+  salloc:
+    command: bin/slurm-cmd salloc
+  sattach:
+    command: bin/slurm-cmd sattach
+  sbatch:
+    command: bin/slurm-cmd sbatch
+  sbcast:
+    command: bin/slurm-cmd sbcast
+  scancel:
+    command: bin/slurm-cmd scancel
+  scontrol:
+    command: bin/slurm-cmd scontrol
+  sdiag:
+    command: bin/slurm-cmd sdiag
+  sinfo:
+    command: bin/slurm-cmd sinfo
+  sprio:
+    command: bin/slurm-cmd sprio
+  squeue:
+    command: bin/slurm-cmd squeue
+  sreport:
+    command: bin/slurm-cmd sreport
+  srun:
+    command: bin/slurm-cmd srun
+  sshare:
+    command: bin/slurm-cmd sshare
+  sstat:
+    command: bin/slurm-cmd sstat
+  strigger:
+    command: bin/slurm-cmd strigger
 
 parts:
-  supervisord:
-    plugin: dump
-    source: src/supervisord/
-    source-type: local
-    build-packages:
-      - python3-pip
-      - python3-setuptools
-    stage-packages:
-      - python3-pip
-      - python3-setuptools
-    override-pull: |
-      snapcraftctl pull
-      pip3 install jinja2 supervisor pyaml
+#  supervisord:
+#    plugin: dump
+#    source: src/supervisord/
+#    source-type: local
+#    build-packages:
+#      - python3-pip
+#      - python3-setuptools
+#    stage-packages:
+#      - python3-pip
+#      - python3-setuptools
+#    override-pull: |
+#      snapcraftctl pull
+#      pip3 install jinja2 supervisor pyaml
 
   munge:
     plugin: dump
@@ -79,12 +141,6 @@ parts:
   munge-customizations:
     plugin: dump
     source: src/munge/
-
-  hooks:
-    plugin: dump
-    source: src/hooks/
-    organize:
-      bin/: snap/hooks/
 
   boost:
     plugin: dump
@@ -295,3 +351,11 @@ parts:
     plugin: dump
     source: src/slurm-bins/
     source-type: local
+
+  hooks:
+    plugin: dump
+    source: src/hooks/
+    organize:
+      bin/: snap/hooks/
+
+
