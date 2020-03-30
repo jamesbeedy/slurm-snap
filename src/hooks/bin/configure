@@ -89,13 +89,13 @@ def configure_snap_mode():
         "none": [],
     ]
 
-    def is_snap_mode_config_supported():
+    def snap_mode_supported():
         if snap_mode_from_snap_config is not None and \
            snap_mode_from_snap_config in snap_mode_process_map.keys():
             return True
         return False
 
-    if not is_snap_mode_config_supported():
+    if not snap_mode_supported():
         raise Exception
 
     if snap_mode_path.exists() and snap_mode_from_snap_config is not None:
