@@ -15,11 +15,6 @@ passthrough:
       snap_daemon: shared
 
 apps:
-#  supervisord:
-#    daemon: simple
-#    command: bin/run-supervisord
-#  supervisorctl:
-#    command: bin/run-supervisorctl
   mysql:
     command: bin/start_mysql
     stop-command: support-files/mysql.server stop
@@ -99,20 +94,6 @@ apps:
     command: bin/slurm-cmd strigger
 
 parts:
-#  supervisord:
-#    plugin: dump
-#    source: src/supervisord/
-#    source-type: local
-#    build-packages:
-#      - python3-pip
-#      - python3-setuptools
-#    stage-packages:
-#      - python3-pip
-#      - python3-setuptools
-#    override-pull: |
-#      snapcraftctl pull
-#      pip3 install jinja2 supervisor pyaml
-
   munge:
     plugin: dump
     source: https://github.com/dun/munge.git
@@ -285,7 +266,6 @@ parts:
       - usr/
     override-build: |
       snapcraftctl build
-      #LD_LIBRARY_PATH=$SNAPCRAFT_STAGE/usr/lib:$SNAPCRAFT_STAGE/usr/lib/x86_64-linux-gnu:$SNAPCRAFT_STAGE/lib:$SNAPCRAFT_STAGE/opt:$SNAPCRAFT_STAGE \
       ./configure --enable-threading \
           --with-munge=$SNAPCRAFT_STAGE/usr/local \
           --with-libcurl=$SNAPCRAFT_STAGE/usr/local \
