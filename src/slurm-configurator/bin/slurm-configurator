@@ -10,9 +10,6 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 
 
-yaml.warnings({'YAMLLoadWarning': False})
-
-
 def get_parsed_args(argv):
     """Create argument parser and return cli args.
     """

@@ -241,7 +241,6 @@ parts:
   slurm:
     after:
       - libcurl
-      - glib
       - munge
     plugin: dump
     source: https://download.schedmd.com/slurm/slurm-20.02.0.tar.bz2
@@ -260,6 +259,7 @@ parts:
       - freeipmi
       - rrdtool
       - libncurses5-dev
+      - libglib2.0-dev
     stage-packages:
       - liblua5.3-dev
       - libmysqlclient-dev
@@ -294,31 +294,6 @@ parts:
       make -j9
       make install
       ldconfig -n /snap/slurm/current/lib/slurm
-
-  glib:
-    plugin: dump
-    source: https://github.com/GNOME/glib.git
-    source-type: git
-    source-depth: 1
-    source-tag: 2.62.2
-    build-packages:
-      - pkg-config
-      - libmount-dev
-      - python3
-      - python3-pip
-      - python3-setuptools
-      - python3-wheel
-      - ninja-build
-    stage:
-      - -README
-    prime:
-      - -*
-    override-build: |
-      snapcraftctl build
-      pip3 install meson
-      meson _build
-      ninja -C _build
-      ninja -C _build install
 
   libcurl:
     plugin: dump
@@ -357,5 +332,3 @@ parts:
     source: src/hooks/
     organize:
       bin/: snap/hooks/
-
-

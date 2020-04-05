@@ -57,7 +57,7 @@ def configure_munge():
     # $SNAP_COMMON/etc/munge/munge.key file does not exist, generate
     # a munge key and write it to the file.
     elif not munge_key_path.exists() and munge_key_from_snap_config is None:
-        munge_key_path.write_text(os.urandom(1024))
+        munge_key_path.write_bytes(os.urandom(1024))
     # Alas, if the munge.key is defined and the munge key file does not exist,
     # write the snap munge.key config to the munge key file.
     elif not munge_key_path.exists() and munge_key_from_snap_config is not None:
@@ -87,7 +87,7 @@ def configure_snap_mode():
         "login": [],
         "all": ["slurmdbd", "slurmctld", "slurmd", "mysql"],
         "none": [],
-    ]
+    }
 
     def snap_mode_supported():
         if snap_mode_from_snap_config is not None and \
@@ -98,34 +98,36 @@ def configure_snap_mode():
     if not snap_mode_supported():
         raise Exception
 
-    if snap_mode_path.exists() and snap_mode_from_snap_config is not None:
+    # If the snap.mode has changed AND is different then what we have
+    # on disk:
+    #     - stop all running processes
+    #     - start only the processes which are supported by the snap.mode
+    if snap_mode_path.read_text() != snap_mode_from_snap_config:
 
-        # If the snap.mode has changed AND is different then what we have
-        # on disk:
-        #     - stop all running processes
-        #     - start only the processes which are supported by the snap.mode
-        if snap_mode_path.read_text() != snap_mode_from_snap_config:
-            # Kill them all (we may need to be more precise about which
-            # process we kill)
-            for snapped_process in snap_mode_process_map["all"]:
-                try:
-                    run_bash(f"snapctl stop {snapped_process}")
-                except Exception:
-                    pass
+        # Write out the new snap mode
+        snap_mode_path.write_text(snap_mode_from_snap_config)
 
-            # Write out the new snap mode
-            snap_mode_path.write_text(snap_mode_from_snap_config)
-            # Grab processes to start
-            snapped_processes = \
-                snap_mode_process_map[snap_mode_from_snap_config]
+        # Kill them all (we may need to be more precise about which
+        # process we kill)
+        for snapped_process in snap_mode_process_map["all"]:
+            try:
+                process = f"{os.environ['SNAP_INSTANCE_NAME']}.{snapped_process}" 
+                run_bash(f"snapctl stop {process}")
+            except Exception:
+                pass
 
-            # Start the processes used by the newly configured snap mode,
-            # throw exception if we cannot start the process.
-            for snapped_process in snapped_processes:
-                try:
-                    run_bash(f"snapctl start {snapped_process}")
-                except Exception:
-                    sys.exit(1)
+        # Grab processes to start
+        snapped_processes = \
+            snap_mode_process_map[snap_mode_from_snap_config]
+
+        # Start the processes used by the newly configured snap mode,
+        # throw exception if we cannot start the process.
+        for snapped_process in snapped_processes:
+            try:
+                process = f"{os.environ['SNAP_INSTANCE_NAME']}.{snapped_process}" 
+                run_bash(f"snapctl start {process}")
+            except Exception:
+                sys.exit(1)
 
 
 

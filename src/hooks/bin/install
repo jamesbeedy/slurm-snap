@@ -2,7 +2,12 @@
 
 set -eux
 
-################################### Create Supervisor and Syslog Dirs ###################################
+################################## Set initial snap.mode ##############################
+initial_snap_mode="none"
+snapctl set snap.mode=$initial_snap_mode
+echo $initial_snap_mode > $SNAP_COMMON/snap_mode
+
+################################### Create Supervisor and Syslog Dirs ##################
 mkdir -p "$SNAP_COMMON/log/"{proxy,http}
 mkdir -p "$SNAP_COMMON/proxy/"{cache,spool}
 mkdir -p "$SNAP_DATA/syslog"
