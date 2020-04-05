@@ -5,26 +5,29 @@ SlurmctldPort: 6817
 
 SlurmUser: "root"
 
-AccountingStorageType: "accounting_storage/none"
+AccountingStorageType: "accounting_storage/mysql"
 
 CheckpointType: "checkpoint/none"
 
 DefaultStorageType: "none"
 
-SlurmdLogFile: "/var/snap/slurmd/common/log/slurmd.log"
+SlurmdLogFile: "/var/snap/slurm/common/log/slurmd.log"
 SlurmdPidFile: "/tmp/slurmd.pid"
 
-MailProg: "/snap/slurmd/current/usr/bin/mail.mailutils"
+MailProg: "/snap/slurm/current/usr/bin/mail.mailutils"
 
-SlurmdSpoolDir: "/var/snap/slurmd/common/var/spool/slurm/d"
+SlurmdSpoolDir: "/var/snap/slurm/common/var/spool/slurm/d"
 
-PluginDir: "/snap/slurmd/current/lib/slurm"
+PluginDir: "/snap/slurm/current/lib/slurm"
 
 SchedulerType: "sched/backfill"
 
 SwitchType: "switch/none"
 
 TmpFS: "/tmp"
+
+
+ProcTrackType: "proctrack/linuxproc"
 
 WaitTime: 30
 KillWait: 30

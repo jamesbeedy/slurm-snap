@@ -31,6 +31,3 @@ KillWait: 30
 MaxJobCount: 10000
 MinJobAge: 3600
 ReturnToService: 0
-
-NodeName: "dev[0-25] NodeAddr=edev[0-25] Weight=16 State=FUTURE"
-PartitionName: "debug Nodes=dev[0-25] Default=YES"

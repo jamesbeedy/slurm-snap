@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import os
+import socket
 import sys
 
 from pathlib import Path
@@ -33,7 +34,11 @@ def render_slurm_conf(ctxt: 'dict'=None):
     if not ctxt:
         ctxt = {}
 
-    templates_path = os.path.join(os.getenv('SNAP_COMMON'), 'etc', 'slurm-configurator')
+    templates_path = os.path.join(
+        os.getenv('SNAP_COMMON'),
+        'etc',
+        'slurm-configurator'
+    )
     env = Environment(loader=FileSystemLoader(templates_path))
     return env.get_template('slurm.conf.tmpl').render(ctxt=ctxt)
 
@@ -82,6 +87,17 @@ def main(argv=sys.argv[1:]):
         f = (slurm_configurator_base / f'{config_type}.yaml')
         for k, v in yaml.load(f.read_text()).items():
             ctxt[k] = v
+
+    hostname = socket.gethostname()
+
+    node_name_and_partition_config = [
+        "slurmctld",
+        "slurmd",
+        "login",
+    ]
+    if args.slurm_node_type in node_name_and_partition_config:
+        ctxt['NodeName'] = f"{hostname} NodeAddr={hostname} Weight=16 State=UNKNOWN CPUs=1 Boards=1 SocketsPerBoard=1 CoresPerSocket=6 ThreadsPerCore=1"
+        ctxt['PartitionName'] = f"debug Nodes={hostname} Default=YES State=UP"
 
     print(render_slurm_conf(ctxt=ctxt))
 

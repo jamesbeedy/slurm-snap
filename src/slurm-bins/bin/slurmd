@@ -16,7 +16,7 @@ export LD_LIBRARY_PATH=$SNAP/lib:$SNAP/lib/slurm:$SNAP/usr/lib/x86_64-linux-gnu
 
 export PATH=$SNAP/bin:$SNAP/usr/bin:/snap/bin:$PATH
 
-export SLURM_CONF=$SNAP_COMMON/etc/slurm/slurmd.conf
+export SLURM_CONF=$SNAP_COMMON/etc/slurm/slurm.conf
 
 SLURMCTLD_LOG=$SNAP_COMMON/log/slurmd.log
 HOSTNAME=`hostname -s`
@@ -48,15 +48,11 @@ fi
 pprint "Running slurm-configurator"
 slurm-configurator -t $SLURM_NODE_TYPE > $SLURM_CONF
 
-if [ -f rsyslog config exists
-
-
-
-
-
 
 pprint "Starting SLURMD"
 exec "$SNAP/sbin/slurmd" \
     "-f" "$SLURM_CONF" \
+    "-d" "$SNAP/sbin/slurmstepd" \
     "-L" "$SLURMCTLD_LOG" \
     "-cDvvvvv" "$@"
+
